@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const navItems = ['Overview', 'Projects', 'Videos', 'Templates', 'Analytics', 'Team', 'Settings'];
 
-const overviewStats = [
+const defaultStats = [
   { label: 'Videos created', value: '12,480', delta: '+18.2%', tone: 'purple' },
   { label: 'Active plans', value: '284', delta: '+9.4%', tone: 'cyan' },
   { label: 'Avg. completion', value: '92%', delta: '+6.1%', tone: 'green' },
@@ -19,33 +19,7 @@ const performanceBars = [
   { day: 'Sun', value: 88 },
 ];
 
-const recentVideos = [
-  { id: 1, title: 'AI founder story', status: 'Ready', duration: '00:45', channel: 'YouTube Shorts', accent: 'purple' },
-  { id: 2, title: 'Product launch teaser', status: 'Rendering', duration: '00:32', channel: 'Instagram Reels', accent: 'cyan' },
-  { id: 3, title: 'Growth strategy explainer', status: 'Draft', duration: '01:12', channel: 'LinkedIn', accent: 'green' },
-  { id: 4, title: 'Daily mindset reel', status: 'Ready', duration: '00:28', channel: 'TikTok', accent: 'orange' },
-];
-
-const renderQueue = [
-  { name: 'Client pitch reel', value: '78%', meta: 'Scene 4 of 6' },
-  { name: 'Brand ad campaign', value: '42%', meta: 'Voice sync in progress' },
-  { name: 'Creator toolkit', value: '89%', meta: 'Export queued' },
-];
-
-const team = [
-  { name: 'Maya', role: 'Creative lead', score: '96%' },
-  { name: 'Jordan', role: 'Motion designer', score: '91%' },
-  { name: 'Elena', role: 'Script editor', score: '94%' },
-];
-
-const trendIdeas = [
-  'AI productivity hacks for solo founders',
-  'Why faceless channels outperform text first',
-  'Career growth in the AI creator economy',
-  'Short-form video frameworks that convert',
-];
-
-const promptHistory = [
+const promptHistoryDefault = [
   'AI productivity hacks for startups and creators',
   'Create a dramatic social ad for tech founders',
   'Turn this product announcement into a viral 30s short',
@@ -64,7 +38,7 @@ const mediaLibrary = [
   'Podcast b-roll',
   'Cinematic city loops',
   'Product close-up shots',
-  'Lifestyle lifestyle cuts',
+  'Lifestyle cuts',
   'Corporate intro sequences',
 ];
 
@@ -80,15 +54,165 @@ function App() {
   const [prompt, setPrompt] = useState(
     'AI is reshaping creator businesses. Create a high-retention faceless video with a punchy hook and bold visuals.'
   );
-  const [history, setHistory] = useState(promptHistory);
+  const [history, setHistory] = useState(promptHistoryDefault);
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
   const [showAuth, setShowAuth] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [authMode, setAuthMode] = useState('login');
+  const [name, setName] = useState('Raj');
+  const [email, setEmail] = useState('raj@vibeforge.ai');
+  const [password, setPassword] = useState('password123');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem('vibeforge-token') || '');
+  const [dashboard, setDashboard] = useState({
+    stats: defaultStats,
+    videos: [],
+    billing: billingPlans[1],
+    projects: [],
+    promptHistory: promptHistoryDefault,
+  });
+  const [loading, setLoading] = useState(false);
 
-  const handleGenerate = () => {
-    if (!prompt.trim()) return;
-    setHistory((prev) => [prompt.trim(), ...prev.filter((item) => item !== prompt.trim())].slice(0, 5));
+  const fetchDashboard = async (authToken) => {
+    if (!authToken) return;
+
+    try {
+      const [projectsRes, billingRes] = await Promise.all([
+        fetch('/api/projects', {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }),
+        fetch('/api/billing', {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }),
+      ]);
+
+      const projectsData = await projectsRes.json();
+      const billingData = await billingRes.json();
+
+      if (projectsData.projects) {
+        setDashboard((prev) => ({ ...prev, projects: projectsData.projects }));
+      }
+
+      if (billingData.plan) {
+        setDashboard((prev) => ({ ...prev, billing: billingData.plan }));
+      }
+    } catch (error) {
+      console.error('Failed to load dashboard', error);
+    }
   };
+
+  useEffect(() => {
+    if (token) {
+      setIsLoggedIn(true);
+      fetchDashboard(token);
+    }
+  }, [token]);
+
+  const handleAuthSubmit = async () => {
+    setLoading(true);
+
+    try {
+      const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+      const payload = authMode === 'login'
+        ? { email, password }
+        : { name, email, password };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Authentication failed');
+      }
+
+      localStorage.setItem('vibeforge-token', data.token);
+      setToken(data.token);
+      setIsLoggedIn(true);
+      setShowAuth(false);
+      setHistory((prev) => (data.user?.name ? prev : prev));
+    } catch (error) {
+      alert(error.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return;
+
+    if (!token) {
+      setShowAuth(true);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          prompt,
+          template: selectedTemplate,
+          name: name || 'Creator',
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Generation failed');
+      }
+
+      setHistory((prev) => [prompt.trim(), ...prev.filter((item) => item !== prompt.trim())].slice(0, 5));
+      setDashboard((prev) => ({
+        ...prev,
+        projects: [
+          {
+            id: data.project.id,
+            title: data.project.title,
+            status: 'Ready',
+            duration: data.project.duration,
+            channel: data.project.channel,
+            accent: 'purple',
+          },
+          ...prev.projects,
+        ],
+      }));
+
+      setSelectedVideo({
+        id: data.project.id,
+        title: data.project.title,
+        status: 'Ready',
+        duration: data.project.duration,
+        channel: data.project.channel,
+        accent: 'purple',
+      });
+    } catch (error) {
+      alert(error.message || 'Generation failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const recentVideos = useMemo(() => {
+    if (dashboard.projects.length) {
+      return dashboard.projects;
+    }
+
+    return [
+      { id: 1, title: 'AI founder story', status: 'Ready', duration: '00:45', channel: 'YouTube Shorts', accent: 'purple' },
+      { id: 2, title: 'Product launch teaser', status: 'Rendering', duration: '00:32', channel: 'Instagram Reels', accent: 'cyan' },
+      { id: 3, title: 'Growth strategy explainer', status: 'Draft', duration: '01:12', channel: 'LinkedIn', accent: 'green' },
+      { id: 4, title: 'Daily mindset reel', status: 'Ready', duration: '00:28', channel: 'TikTok', accent: 'orange' },
+    ];
+  }, [dashboard.projects]);
 
   return (
     <div className={`dashboard-shell ${theme}`}>
@@ -119,7 +243,7 @@ function App() {
           <div className="progress-track">
             <span style={{ width: '68%' }} />
           </div>
-          <small>1,420 / 2,100 credits used</small>
+          <small>{dashboard.billing?.name || 'Pro'} plan · 1,420 / 2,100 credits</small>
         </div>
       </aside>
 
@@ -127,7 +251,7 @@ function App() {
         <header className="topbar">
           <div>
             <div className="eyebrow">Dashboard</div>
-            <h1>Creator workspace</h1>
+            <h1>{isLoggedIn ? 'Creator workspace' : 'Preview workspace'}</h1>
           </div>
 
           <div className="topbar-actions">
@@ -145,17 +269,17 @@ function App() {
             </div>
             <button className="primary-btn" onClick={() => setShowAuth(true)}>New video</button>
             <div className="profile-pill" onClick={() => setShowAuth(true)}>
-              <div className="profile-avatar">R</div>
+              <div className="profile-avatar">{name.charAt(0) || 'R'}</div>
               <div>
-                <strong>Raj</strong>
-                <small>Pro</small>
+                <strong>{name}</strong>
+                <small>{dashboard.billing?.name || 'Pro'}</small>
               </div>
             </div>
           </div>
         </header>
 
         <section className="stats-grid">
-          {overviewStats.map((stat) => (
+          {(dashboard.stats || defaultStats).map((stat) => (
             <article key={stat.label} className="stat-card">
               <div className={`stat-tone ${stat.tone}`} />
               <div className="stat-body">
@@ -196,7 +320,9 @@ function App() {
               <span>Voiceover</span>
               <span>4K</span>
             </div>
-            <button className="primary-btn full" onClick={handleGenerate}>Generate video</button>
+            <button className="primary-btn full" onClick={handleGenerate} disabled={loading}>
+              {loading ? 'Generating...' : 'Generate video'}
+            </button>
           </article>
         </section>
 
@@ -236,7 +362,11 @@ function App() {
             </div>
 
             <div className="queue-list">
-              {renderQueue.map((item) => (
+              {[
+                { name: 'Client pitch reel', value: '78%', meta: 'Scene 4 of 6' },
+                { name: 'Brand ad campaign', value: '42%', meta: 'Voice sync in progress' },
+                { name: 'Creator toolkit', value: '89%', meta: 'Export queued' },
+              ].map((item) => (
                 <div key={item.name} className="queue-item">
                   <div className="queue-copy">
                     <strong>{item.name}</strong>
@@ -262,7 +392,11 @@ function App() {
             </div>
 
             <div className="team-list">
-              {team.map((member) => (
+              {[
+                { name: 'Maya', role: 'Creative lead', score: '96%' },
+                { name: 'Jordan', role: 'Motion designer', score: '91%' },
+                { name: 'Elena', role: 'Script editor', score: '94%' },
+              ].map((member) => (
                 <div key={member.name} className="team-row">
                   <div className="team-avatar">{member.name.charAt(0)}</div>
                   <div className="team-copy">
@@ -284,7 +418,12 @@ function App() {
             </div>
 
             <div className="idea-list">
-              {trendIdeas.map((idea) => (
+              {[
+                'AI productivity hacks for solo founders',
+                'Why faceless channels outperform text first',
+                'Career growth in the AI creator economy',
+                'Short-form video frameworks that convert',
+              ].map((idea) => (
                 <div key={idea} className="idea-item">
                   <span className="spark" />
                   {idea}
@@ -389,20 +528,33 @@ function App() {
         <div className="modal-overlay" onClick={() => setShowAuth(false)}>
           <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Sign in</h3>
+              <h3>{authMode === 'login' ? 'Sign in' : 'Create account'}</h3>
               <button className="close-btn" onClick={() => setShowAuth(false)}>×</button>
             </div>
 
+            <div className="toggle-row">
+              <button className={authMode === 'login' ? 'mode-btn active' : 'mode-btn'} onClick={() => setAuthMode('login')}>Login</button>
+              <button className={authMode === 'register' ? 'mode-btn active' : 'mode-btn'} onClick={() => setAuthMode('register')}>Register</button>
+            </div>
+
             <div className="auth-box">
+              {authMode === 'register' && (
+                <label>
+                  Name
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+                </label>
+              )}
               <label>
                 Email
-                <input type="email" defaultValue="raj@vibeforge.ai" />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </label>
               <label>
                 Password
-                <input type="password" defaultValue="••••••••" />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
               </label>
-              <button className="primary-btn full" onClick={() => setShowAuth(false)}>Continue</button>
+              <button className="primary-btn full" onClick={handleAuthSubmit} disabled={loading}>
+                {loading ? 'Please wait...' : authMode === 'login' ? 'Continue' : 'Create account'}
+              </button>
             </div>
           </div>
         </div>
