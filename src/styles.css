@@ -1,0 +1,316 @@
+const metrics = [
+  { value: '2.4M+', label: 'videos created' },
+  { value: '99.9%', label: 'render uptime' },
+  { value: '4.8/5', label: 'creator rating' },
+  { value: '12x', label: 'faster production' },
+];
+
+const features = [
+  {
+    title: 'AI script engine',
+    text: 'Turn a single idea into a finished script, hook, and CTA in seconds.',
+    icon: '✦',
+  },
+  {
+    title: 'Voice + captions',
+    text: 'Generate natural voiceovers and auto-synced subtitles built for short-form content.',
+    icon: '◉',
+  },
+  {
+    title: 'Faceless templates',
+    text: 'Choose from viral-ready templates designed for YouTube, Reels, TikTok, and Shorts.',
+    icon: '▣',
+  },
+  {
+    title: 'Brand consistency',
+    text: 'Keep your fonts, colors, tone, and music aligned across every video.',
+    icon: '⬢',
+  },
+];
+
+const workflows = [
+  'Describe your video idea or paste a script',
+  'Choose your tone, audience, and video style',
+  'Generate your voiceover, B-roll, and subtitles',
+  'Export in 1080p and publish in one click',
+];
+
+const templates = [
+  { label: 'Startup hype', description: 'Launch videos and founder stories', accent: 'purple' },
+  { label: 'Motivation', description: 'Daily habit content and personal growth loops', accent: 'cyan' },
+  { label: 'Tech explainers', description: 'AI tools, SaaS updates, and tutorials', accent: 'green' },
+  { label: 'Faceless reels', description: 'Short-form content with high retention hooks', accent: 'orange' },
+];
+
+const testimonials = [
+  {
+    quote:
+      'We cut our short-form content production from 8 hours to under 30 minutes per video.',
+    name: 'Daniel R.',
+    role: 'Content Studio Lead',
+  },
+  {
+    quote:
+      'The faceless templates are incredibly polished. Our weekly output doubled in the first month.',
+    name: 'Aisha M.',
+    role: 'Creator & Educator',
+  },
+  {
+    quote:
+      'It feels like a premium product, but it is simple enough for my team to use every day.',
+    name: 'Liam T.',
+    role: 'Growth Marketer',
+  },
+];
+
+const pricing = [
+  {
+    name: 'Free',
+    price: '$0',
+    list: ['3 videos/month', 'Basic templates', '720p export', 'Watermark included'],
+    featured: false,
+  },
+  {
+    name: 'Pro',
+    price: '$19',
+    description: 'Best for creators',
+    list: ['Unlimited projects', '4K export', 'Voice cloning', 'Brand kit'],
+    featured: true,
+  },
+  {
+    name: 'Scale',
+    price: '$49',
+    list: ['Team workspace', 'API access', 'Priority renders', 'Advanced analytics'],
+    featured: false,
+  },
+];
+
+function App() {
+  return (
+    <div className="page-shell">
+      <header className="site-header">
+        <div className="container nav-wrap">
+          <div className="brand-group">
+            <div className="brand-icon">V</div>
+            <div>
+              <div className="brand-name">VibeForge</div>
+            </div>
+          </div>
+          <nav className="main-nav">
+            <a href="#features">Features</a>
+            <a href="#workflow">Workflow</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#reviews">Reviews</a>
+          </nav>
+          <div className="nav-actions">
+            <button className="nav-link-btn">Login</button>
+            <button className="primary-btn">Start free</button>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section className="hero-section">
+          <div className="container hero-grid">
+            <div className="hero-copy">
+              <span className="eyebrow">AI VIDEO CREATOR</span>
+              <h1>Turn any idea into a faceless video in minutes.</h1>
+              <p>
+                Create scroll-stopping videos for YouTube Shorts, TikTok, Reels, and ads with AI scripts,
+                voiceovers, stock visuals, subtitles, and one-click export.
+              </p>
+
+              <div className="hero-actions">
+                <button className="primary-btn large">Start creating free</button>
+                <button className="ghost-btn large">Watch demo</button>
+              </div>
+
+              <div className="trust-row">
+                <span>Trusted by creators, agencies & teams</span>
+                <div className="logo-row">
+                  <span>ViralFlow</span>
+                  <span>Northstar</span>
+                  <span>SignalLab</span>
+                  <span>Findora</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="hero-visual">
+              <div className="mockup-window">
+                <div className="window-bar">
+                  <span className="dot red" />
+                  <span className="dot yellow" />
+                  <span className="dot green" />
+                </div>
+
+                <div className="mockup-card">
+                  <div className="mini-tag">Script</div>
+                  <h3>How to build a faceless brand that scales</h3>
+                  <p>Use a 3-step content formula to get viral retention without showing your face.</p>
+
+                  <div className="mini-panel">
+                    <div className="panel-line short" />
+                    <div className="panel-line" />
+                    <div className="panel-line" />
+                    <div className="panel-line medium" />
+                  </div>
+
+                  <div className="meta-row">
+                    <span>AI Voice</span>
+                    <span>4K Render</span>
+                  </div>
+                </div>
+
+                <div className="floating-badge one">+32% CTR</div>
+                <div className="floating-badge two">2.8x reach</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="stat-band">
+          <div className="container stat-grid">
+            {metrics.map((stat) => (
+              <div key={stat.label} className="metric-box">
+                <strong>{stat.value}</strong>
+                <span>{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="features" className="section-block">
+          <div className="container">
+            <div className="section-heading">
+              <span className="eyebrow">WHY CREATORS CHOOSE VIBEFORGE</span>
+              <h2>Everything you need to publish content faster.</h2>
+            </div>
+
+            <div className="feature-grid">
+              {features.map((feature) => (
+                <article key={feature.title} className="feature-card">
+                  <div className="feature-icon">{feature.icon}</div>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="workflow" className="section-block alt">
+          <div className="container workflow-wrap">
+            <div className="section-heading left">
+              <span className="eyebrow">SIMPLE WORKFLOW</span>
+              <h2>From prompt to publish in one system.</h2>
+            </div>
+
+            <div className="workflow-grid">
+              {workflows.map((step, index) => (
+                <div key={step} className="workflow-step">
+                  <div className="step-number">0{index + 1}</div>
+                  <p>{step}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section-block">
+          <div className="container">
+            <div className="section-heading">
+              <span className="eyebrow">TEMPLATES</span>
+              <h2>Built for the styles creators actually publish.</h2>
+            </div>
+
+            <div className="template-grid">
+              {templates.map((template) => (
+                <div key={template.label} className={`template-card ${template.accent}`}>
+                  <div className="template-orb" />
+                  <h3>{template.label}</h3>
+                  <p>{template.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="reviews" className="section-block alt">
+          <div className="container">
+            <div className="section-heading">
+              <span className="eyebrow">WHAT USERS SAY</span>
+              <h2>The fastest way to scale short-form video.</h2>
+            </div>
+
+            <div className="testimonials-grid">
+              {testimonials.map((item) => (
+                <article key={item.name} className="testimonial-card">
+                  <div className="stars">★★★★★</div>
+                  <p>“{item.quote}”</p>
+                  <div className="author-row">
+                    <div className="avatar">{item.name.charAt(0)}</div>
+                    <div>
+                      <strong>{item.name}</strong>
+                      <span>{item.role}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="pricing" className="section-block">
+          <div className="container">
+            <div className="section-heading">
+              <span className="eyebrow">PRICING</span>
+              <h2>Simple plans that grow with your content.</h2>
+            </div>
+
+            <div className="pricing-grid">
+              {pricing.map((plan) => (
+                <article key={plan.name} className={`pricing-card ${plan.featured ? 'featured' : ''}`}>
+                  {plan.featured && <span className="badge">Most popular</span>}
+                  <h3>{plan.name}</h3>
+                  {plan.description && <p className="plan-description">{plan.description}</p>}
+                  <div className="price-wrap">
+                    <strong>{plan.price}</strong>
+                    <span>/mo</span>
+                  </div>
+                  <ul>
+                    {plan.list.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  <button className={plan.featured ? 'primary-btn full' : 'ghost-btn full'}>
+                    {plan.name === 'Free' ? 'Try free' : 'Choose plan'}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="container footer-wrap">
+          <div>
+            <div className="brand-group">
+              <div className="brand-icon">V</div>
+              <div className="brand-name">VibeForge</div>
+            </div>
+          </div>
+          <div className="footer-links">
+            <a href="#features">Features</a>
+            <a href="#workflow">Workflow</a>
+            <a href="#pricing">Pricing</a>
+          </div>
+          <button className="primary-btn">Create free</button>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default App;
